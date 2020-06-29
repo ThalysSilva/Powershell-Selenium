@@ -30,13 +30,13 @@ function Teste-Saida($retorno, $nomeSessao){
 		Tirar-Foto "$nomeSessao" -erro;
 		write-host "Erro: ($retorno). Abortando...";
 		Pause;
-		pararDriver;
+		Parar-Driver;
 		exit $retorno;
 	}
 
 }
 
-function esperarPeloElemento($localizador, $tempoEmSegundos, $nomeSessao, [switch]$byClass,[switch]$byName,[switch]$byXPath,[switch]$noTry){
+function Esperar-Elemento($localizador, $tempoEmSegundos, $nomeSessao, [switch]$byClassName,[switch]$byName,[switch]$byCssSelector,[switch]$byXPath,[switch]$noTry){
 
     $webDriverWait = New-Object -TypeName OpenQA.Selenium.Support.UI.WebDriverWait($script:ChromeDriver, (New-TimeSpan -Seconds $tempoEmSegundos))	
 
@@ -44,50 +44,148 @@ function esperarPeloElemento($localizador, $tempoEmSegundos, $nomeSessao, [switc
 	    Try{
 		
 	
-            if($byClass){
+            if($byClassName){
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::ClassName($localizador)))
-            }
-            elseif($byName){
+
+            }elseif($byName){
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::Name($localizador))) 
-            }
-            elseif($byXPath){
+
+            }elseif($byXPath){
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::XPath($localizador))) 
-            }
-            else{
+
+            }elseif($byCssSelector){
+
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::CssSelector($localizador))) 
+
+            }else{
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::Id($localizador)))
+
             }
             return;
         }catch [System.Management.Automation.MethodInvocationException]{
             write-host "Tempo de espera pelo $localizador expirou";
 		
-		    Teste-Saida 1 "$nomeSessao";
+		    Testar-Saida 1 "$nomeSessao_$localizador";
 		
         }catch {
             write-host "O Selenium Wait não foi carregado corretamente, verifique o destino ou se a dll está no local adequado.";
 		
-		    Teste-Saida 12 "$nomeSessao";
+		    Testar-Saida 12 "$nomeSessao";
         }
 
     }else
     {
-        if($byClass){
+        if($byClassName){
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::ClassName($localizador)))
-            }
-            elseif($byName){
+            
+            }elseif($byName){
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::Name($localizador))) 
-            }
-            elseif($byXPath){
+            
+            }elseif($byXPath){
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::XPath($localizador))) 
-            }
-            else{
+            
+            }elseif($byCssSelector){
+
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::CssSelector($localizador))) 
+            
+            }else{
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::Id($localizador)))
+           
             }
+            
             return;
     }
 
 };
 
-function esperarPeloTexto($localizador,$valorEsperado, $tempoEmSegundos, $nomeSessao, [switch]$byClass,[switch]$byName,[switch]$byXPath,[switch]$noTry){
+function Procurar-Elemento($localizador, $tempoEmSegundos, $nomeSessao, [switch]$byClassName,[switch]$byName,[switch]$byCssSelector,[switch]$byXPath,[switch]$noTry){
+
+    if(!$noTry){
+
+	    Try{
+	
+            if($byClassName){
+
+                Esperar-Elemento $localizador $tempoEmSegundos $nomeSessao -byClassName;
+
+                return $script:ChromeDriver.findElementsbyClassName($localizador);
+
+            }elseif($byName){
+
+                Esperar-Elemento $localizador $tempoEmSegundos $nomeSessao -byName;
+
+                return $script:ChromeDriver.findElementByName($localizador);
+
+            }elseif($byXPath){
+   
+                Esperar-Elemento $localizador $tempoEmSegundos $nomeSessao -byXPath;
+
+                return $script:ChromeDriver.findElementsByXPath($localizador);
+
+            }elseif($byCssSelector){
+                
+                Esperar-Elemento $localizador $tempoEmSegundos $nomeSessao -byCssSelector;
+
+                return $script:ChromeDriver.findElementsByCssSelector($localizador);
+
+            }else{
+                Esperar-Elemento $localizador $tempoEmSegundos $nomeSessao;
+
+                return $script:ChromeDriver.findElementById($localizador);
+            }
+
+        }catch{
+            write-host "Não foi possível encontrar o objeto referente ao $localizador.";
+		
+		    Testar-Saida 1 "$nomeSessao";
+        }
+
+    }else{
+
+        if($byClassName){
+
+                Esperar-Elemento $localizador $tempoEmSegundos $nomeSessao  -byClassName -noTry;
+
+                return $script:ChromeDriver.findElementbyClassName($localizador);
+
+            }elseif($byName){
+
+                Esperar-Elemento $localizador $tempoEmSegundos $nomeSessao  -byName -noTry;
+
+                return $script:ChromeDriver.findElementByName($localizador);
+
+            }elseif($byXPath){
+   
+                Esperar-Elemento $localizador $tempoEmSegundos $nomeSessao  -byXPath -noTry;
+
+                return $script:ChromeDriver.findElementByXPath($localizador);
+
+            }elseif($byCssSelector){
+                
+                Esperar-Elemento $localizador $tempoEmSegundos $nomeSessao  -byCssSelector -noTry;
+
+                return $script:ChromeDriver.findElementByCssSelector($localizador);
+
+            }else{
+
+                Esperar-Elemento $localizador $tempoEmSegundos $nomeSessao -noTry;
+
+                return $script:ChromeDriver.findElementById($localizador);
+            }
+    }
+
+};
+
+
+function Esperar-Texto($localizador,$valorEsperado, $tempoEmSegundos, $nomeSessao, [switch]$byClassName,[switch]$byName,[switch]$byXPath,[switch]$noTry){
 	
     $webDriverWait = New-Object -TypeName OpenQA.Selenium.Support.UI.WebDriverWait($script:ChromeDriver, (New-TimeSpan -Seconds $tempoEmSegundos))
     
@@ -95,63 +193,83 @@ function esperarPeloTexto($localizador,$valorEsperado, $tempoEmSegundos, $nomeSe
 
 	    Try{
 	
-            if($byClass){
+            if($byClassName){
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::textToBePresentInElementLocated( [OpenQA.Selenium.by]::ClassName($localizador), $valorEsperado))
-            }
-            elseif($byName){
+            
+            }elseif($byName){
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::textToBePresentInElementLocated( [OpenQA.Selenium.by]::Name($localizador), $valorEsperado)) 
-            }
-            elseif($byXPath){
+            
+            }elseif($byXPath){
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::textToBePresentInElementLocated( [OpenQA.Selenium.by]::XPath($localizador), $valorEsperado)) 
-            }
-            else{
+            
+            }else{
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::textToBePresentInElementLocated( [OpenQA.Selenium.by]::Id($localizador), $valorEsperado))
+            
             }
+
             return;
 
         }catch [System.Management.Automation.MethodInvocationException]{
             write-host "Tempo de espera pelo valor $valorEsperado expirou";
 		
-		    Teste-Saida 1 "$nomeSessao";
+		    Testar-Saida 1 "$nomeSessao";
 		
         }catch {
             write-host "O Selenium Wait não foi carregado corretamente, verifique o destino ou se a dll está no local adequado.";
 		
-		    Teste-Saida 12 "$nomeSessao";
+		    Testar-Saida 12 "$nomeSessao";
         }
 
     }else
     {
     
-        if($byClass){
+        if($byClassName){
+                
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::textToBePresentInElementLocated( [OpenQA.Selenium.by]::ClassName($localizador), $valorEsperado))
-            }
-            elseif($byName){
+            
+            }elseif($byName){
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::textToBePresentInElementLocated( [OpenQA.Selenium.by]::Name($localizador), $valorEsperado)) 
-            }
-            elseif($byXPath){
+            
+            }elseif($byXPath){
+
+                
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::textToBePresentInElementLocated( [OpenQA.Selenium.by]::XPath($localizador), $valorEsperado)) 
-            }
-            else{
+            }else{
+
                 $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::textToBePresentInElementLocated( [OpenQA.Selenium.by]::Id($localizador), $valorEsperado))
+            
             }
             return;
     }
 };
 
-function pararDriver (){
+function Trocar-Pagina ($idPag, $script){
+
+    $script:ChromeDriver.SwitchTo().DefaultContent() | Out-Null;
+
+    Esperar-Elemento "menuPrincipal" 5 $idPag;
+
+    $script:ChromeDriver.ExecuteScript($script)  | Out-Null;
+
+    Esperar-Elemento "conteudo" 5 $idPag;
+
+    $script:ChromeDriver.SwitchTo().frame("conteudo") | Out-Null;
+}
+
+function Parar-Driver (){
 
     Write-Host "Parando Sistema...";
-    
-    #$ChromeDriver.SwitchTo().DefaultContent() | Out-Null;
-
-    #Tirar-Foto "logout";
 
     $ChromeDriver.Manage().Cookies.DeleteAllCookies()
 
     Start-Sleep -Seconds 2;
 
-    #esperarPeloElemento "//settings-ui" 10 "limpar-cache" -byXPath;
+    #Esperar-Elemento "//settings-ui" 10 "limpar-cache" -byXPath;
 
     Function Stop-ChromeDriver {Get-Process -Name chromedriver -ErrorAction SilentlyContinue | Stop-Process -ErrorAction SilentlyContinue};
 
@@ -159,7 +277,10 @@ function pararDriver (){
 
     $ChromeDriver.Quit() ;
 
-Stop-ChromeDriver;
+    Stop-ChromeDriver;
+
+    Remove-Variable * -ErrorAction SilentlyContinue; Remove-Module *; $error.Clear(); Clear-Host
+
 }
 
 #############
@@ -169,7 +290,7 @@ Stop-ChromeDriver;
 
 
 Try{
-	$PathDir = "$PSScriptRoot";
+	#$PathDir = "$PSScriptRoot";
 
 	$WebDriverPath = "$PathDir\Lib\WebDriver\lib\net45\WebDriver.dll" ;
 
@@ -189,7 +310,7 @@ Try{
 }catch{
 	write-host "Falha ao carregar DLLS, verifique se os arquivos estão no diretório correto."
 	
-	Teste-Saida 13;
+	Testar-Saida 13;
 }
 
 #[iniciando-headless-mode]##################################################
@@ -204,7 +325,7 @@ Try{
 
 	$chromeOptions.addArguments("user-data-dir=C:\Users\$env:username\AppData\Local\Google\Chrome\User Data\Default");
 
-    $chromeOptions.addArguments([System.Collections.Generic.List[string]]@(<#'--allow-running-insecure-content', '--disable-infobars', '--enable-automation', '--kiosk',#> "--lang=${locale}"))
+    $chromeOptions.addArguments([System.Collections.Generic.List[string]]@(<#'--allow-running-insecure-content', '--disable-infobars', '--enable-automation', '--kiosk',#> "--lang=${locale}","--ignore-certificate-errors", "--ignore-ssl-errors=yes", "--disable-logging"))
 
     #$chromeOptions.AddUserProfilePreference('credentials_enable_service', $false)
 
@@ -214,7 +335,7 @@ Try{
 
 	Write-Host "Houve uma falha ao carregar e/ou configurar o chrome headless... ";
 	
-	Teste-Saida 11;
+	Testar-Saida 11;
 
 }
 
@@ -225,7 +346,7 @@ Try{
 
 	$Login = "$PathDir\Login.txt";
 
-	$ID = Get-Content $Login | Select -Index 0 -ErrorAction Stop;
+	$id = Get-Content $Login | Select -Index 0 -ErrorAction Stop;
 
 	$username = Get-Content $Login | Select -Index 1 -ErrorAction Stop;
 
@@ -237,23 +358,28 @@ Try{
 
 	$Credencial = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $username, (Get-Content $PasswordFile |ConvertTo-SecureString -key $key) -ErrorAction Stop;
 
-	$Credencial | Add-Member -NotePropertyName ID -NotePropertyValue $ID -ErrorAction Stop;
+	$Credencial | Add-Member -NotePropertyName id -NotePropertyValue $id -ErrorAction Stop;
 
 	$Credencial;
 
 }catch [System.Management.Automation.PSArgumentException]{
 	write-host "O chromeDriver não foi iniciado corretamente, verifique o destino ou se a dll está no local adequado...";
 	
-	Teste-Saida 10;
+	Testar-Saida 10;
 }catch [System.Management.Automation.ItemNotFoundException]{
 	write-host "O arquivo para leitura das credenciais não foi encontrado...";
 	
-	Teste-Saida 2;
-}catch [System.Management.Automation.ParameterBindingValidationException]{
+	Testar-Saida 2;
+}catch [System.Management.Automation.MethodInvocationException]{
+	write-host "A versão do chrome e chromedriver são imcompatíveis...";
+	
+	Testar-Saida 6;
+
+}<#catch [System.Management.Automation.ParameterBindingValidationException]{
 	write-host "A variável de credencial não foi criada corretamente..."
 	
-	Teste-Saida 3;
-}
+	Testar-Saida 3;
+}#>
 
 
 
@@ -265,7 +391,7 @@ Try{
 # [3]: Variável mal definida.
 # [4]: Usuario ou senha errados.
 # [5]: O teste não se comportou como esperado.
-# [6]:
+# [6]: Chromedrive imcompatível com a versão do navegador chrome
 # [7]:
 # [8]:
 # [9]:
@@ -273,8 +399,8 @@ Try{
 # [11]: O Chrome headless não foi configurado ou carregado corretamente.
 # [12]: O Selenium Wait não foi configurado corretamente.
 # [13]: Falha ao carregar DLLs.
-# [14]:
-#
+# [14]: Não foi possível encontrar o objeto referente ao $localizador.
+# [15]:
 #
 #
 #
