@@ -23,7 +23,6 @@ function Tirar-Foto($nomeSessao, [switch]$erro){
 	}
 };
 
-function Teste-Saida($retorno, $nomeSessao){
 function Click-Js($elemento){
 
     $script:ChromeDriver.ExecuteScript("arguments[0].click();", $elemento);
